@@ -1,0 +1,107 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity HexFF is
+ Port ( clk: in STD_LOGIC;
+        sw: in STD_LOGIC_VECTOR(0 downto 0);
+        seg: out std_logic_vector(6 downto 0);
+        an: out std_logic_vector(3 downto 0) 
+ );
+end HexFF;
+
+architecture Behavioral of HexFF is
+signal reset: STD_LOGIC;
+
+type moore_machine is (bits,tens);
+signal m_before, m_after : moore_machine := bits;
+
+constant speed : integer :=29999999; 
+constant cnt_intMax: integer :=9999;
+
+signal main_counter : integer range 0 to 15 := 0;
+signal cnt_units, cnt_tens: integer range 0 to 15 := 0;
+
+signal speed0 : integer range 0 to speed := 0;
+signal cnt_int : integer range 0 to cnt_intMax :=0;
+
+begin
+reset <= sw(0);
+--unit counter plus reset----
+process(clk)
+    begin
+        if rising_edge(clk) then
+            if reset = '1' then
+                cnt_units <= 0;
+                cnt_tens <=0;
+            else 
+                if speed0 = speed then
+                    speed0 <=0;
+                    cnt_units<= cnt_units +1;
+                        if cnt_units = 15 then
+                            cnt_units <= 0;
+                            cnt_tens <= cnt_tens +1;
+                                if cnt_tens = 15 then
+                                    cnt_tens <= 0;
+                                    cnt_units <= 0;           
+                                end if;                 
+                        end if;                                                  
+                else
+                    speed0 <= speed0+1;
+                end if;
+        end if;
+     end if;
+end process;
+--clk for machine
+process(clk,m_before,m_after)
+    begin
+    if rising_edge(clk) then
+        cnt_int <= cnt_int + 1;
+            if cnt_int = cnt_intMax then
+                cnt_int <= 0;
+                m_before <= m_after;
+            end if;
+    end if;
+end process;    
+----digit selector----
+main_counter <=       cnt_units when m_before = bits else
+                      cnt_tens;
+ 
+seg             <=    "1000000" when main_counter = 0 else 
+					  "1111001" when main_counter = 1 else
+					  "0100100" when main_counter = 2 else 
+					  "0110000" when main_counter = 3 else 
+					  "0011001" when main_counter = 4 else
+					  "0010010" when main_counter = 5 else 
+					  "0000010" when main_counter = 6 else
+					  "1111000" when main_counter = 7 else
+					  "0000000" when main_counter = 8 else
+					  "0010000" when main_counter = 9 else
+					  "0001000" when main_counter = 10 else
+					  "0000011" when main_counter = 11 else
+					  "0100111" when main_counter = 12 else
+					  "0100001" when main_counter = 13 else
+					  "0000100" when main_counter = 14 else
+					  "0001110";
+--driver 7 segments
+process(m_before)
+begin
+    case m_before is
+        when bits =>
+            an <= "1110";
+            m_after <= tens;
+        when tens =>
+            an <= "1101";
+            m_after <= bits;
+        when others => null;
+    end case;
+end process;					  
+end Behavioral;
