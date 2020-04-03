@@ -1,0 +1,44 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use ieee. std_logic_arith.all;
+use ieee. std_logic_unsigned.all;
+
+entity Basys3Main is
+  Port (clk: in STD_LOGIC;
+        sw: in STD_LOGIC_VECTOR(1 downto 0);
+        led: out STD_LOGIC_VECTOR(1 downto 0)
+             );
+end Basys3Main;
+
+architecture Behavioral of Basys3Main is
+
+signal S: STD_LOGIC;
+signal R: STD_LOGIC;
+signal Q: STD_LOGIC;
+signal QBar: STD_LOGIC;
+
+begin
+S <= sw(0);
+R <= sw(1);
+led(0) <= Q;
+led(1) <= QBar;
+
+    PROCESS(clk)
+        variable tmp: std_logic;
+        begin
+            if(rising_edge(clk)) then
+                if(S='0' and R='0')then
+                    tmp:=tmp;
+                elsif(S='1' and R='1')then
+                    tmp:='Z';
+                elsif(S='0' and R='1')then
+                    tmp:='0';
+                else
+                    tmp:='1';
+                end if;
+            end if;
+        Q <= tmp;
+        QBAR <= not tmp;
+end PROCESS;
+end Behavioral;
