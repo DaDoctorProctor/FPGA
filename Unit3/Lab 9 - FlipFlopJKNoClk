@@ -1,0 +1,28 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity FlipFlopJKIeeCLKDesu is
+  Port (sw2: in STD_LOGIC;
+        sw0: in STD_LOGIC;
+        sw1: in STD_LOGIC;
+        led0: out STD_LOGIC;
+        led1: out STD_LOGIC 
+  );
+end FlipFlopJKIeeCLKDesu;
+
+architecture Behavioral of FlipFlopJKIeeCLKDesu is
+signal Q: STD_LOGIC;
+signal QNot: STD_LOGIC;
+signal Jay: STD_LOGIC;
+signal Kay: STD_LOGIC;
+signal cnt_clk: STD_LOGIC;
+begin
+  led0 <= Q;
+  led1 <= QNot;
+  Kay <= sw0;
+  Jay <= sw1;
+  cnt_clk <= sw2;
+  Q <= (Not(Jay AND cnt_clk AND QNot) NAND QNot);
+  QNot <= (Not(Kay AND cnt_clk AND Q) NAND Q);
+end Behavioral;
