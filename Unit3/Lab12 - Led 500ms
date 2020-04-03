@@ -1,0 +1,39 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity Basys3Main is
+  Port (clk: STD_LOGIC; 
+        led: out STD_LOGIC_VECTOR(0 downto 0));
+end Basys3Main;
+
+architecture Behavioral of Basys3Main is
+constant speed : integer :=50000000; 
+constant cnt_intMax: integer :=9999;
+signal cnt_units: integer range 0 to 1 := 0;
+signal speed0 : integer range 0 to speed := 0;
+signal cnt_int : integer range 0 to cnt_intMax :=0;
+signal led0: STD_LOGIC;
+begin
+
+led(0) <= led0;
+process(clk)
+    begin
+        if rising_edge(clk) then
+             if speed0 = speed then
+                  speed0 <=0;
+                  cnt_units<= cnt_units +1;
+                      if cnt_units = 1 then
+                         cnt_units <= 0;
+                         led0 <= '0';
+                      else
+                         led0 <= '1';
+                            
+                      end if;
+              
+                else
+                    speed0 <= speed0+1;
+                        end if;
+                end if;
+    end process;                     
+end Behavioral;
