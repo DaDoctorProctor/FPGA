@@ -1,0 +1,50 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity FlipFlopJK is
+  Port (clk: in STD_LOGIC;
+        sw0: in STD_LOGIC;
+        sw1: in STD_LOGIC;
+        led0: out STD_LOGIC;
+        led1: out STD_LOGIC 
+  );
+end FlipFlopJK;
+
+architecture Behavioral of FlipFlopJK is
+constant speed : integer :=100000000; 
+constant cnt_intMax: integer :=9999;
+signal cnt_units: integer range 0 to 1 := 0;
+signal speed0 : integer range 0 to speed := 0;
+signal cnt_int : integer range 0 to cnt_intMax :=0;
+signal Q: STD_LOGIC;
+signal QNot: STD_LOGIC;
+signal Jay: STD_LOGIC;
+signal Kay: STD_LOGIC;
+signal cnt_clk: STD_LOGIC;
+begin
+led0 <= Q;
+led1 <= QNot;
+Kay <= sw0;
+Jay <= sw1;
+process(clk)
+    begin
+        if rising_edge(clk) then
+             if speed0 = speed then
+                  speed0 <=0;
+                  cnt_units<= cnt_units +1;
+                   if cnt_units = 1 then
+                    cnt_units <= 0;
+                    cnt_clk <= '1';
+                   else
+                    cnt_clk <= '0'; 
+                   end if;
+                else
+                    speed0 <= speed0+1;
+                        end if;
+                end if;
+    end process;
+Q <= (Not(Jay AND cnt_clk AND QNot) NAND QNot);
+QNot <= (Not(Kay AND cnt_clk AND Q) NAND Q);
+
+end Behavioral;
