@@ -1,0 +1,42 @@
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity TestBench is
+end TestBench;
+
+architecture Behavioral of TestBench is
+    component FlipFlopT is
+    port (  T: in std_logic;
+            Clock: in std_logic;
+            Q: out std_logic);
+    end component;
+signal T: STD_LOGIC;
+signal Clock: STD_LOGIC;
+signal Q: STD_LOGIC;
+signal clk: STD_LOGIC:='0';
+constant clk_period : time := 1000ns;
+
+begin
+    UUT: FlipFlopT PORT MAP(
+    T=>T,Clock=>Clock,Q=>Q
+    );
+    
+    clk_process:process
+    begin
+        clk <= '0';
+        wait for clk_period/2;
+        clk <= '1';
+        wait for clk_period/2;
+    end process;
+    
+    stim_proc:process
+    begin
+    T <= '0';
+    wait for clk_period;
+    T<=  '1';
+    wait for clk_period;
+    T <= '0';
+    wait for clk_period;
+    end process;
+end Behavioral;
