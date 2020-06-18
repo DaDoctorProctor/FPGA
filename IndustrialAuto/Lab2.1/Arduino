@@ -1,0 +1,49 @@
+int pwm=3; 
+int x1=10;
+int x2=11;
+
+int var;
+
+void setup() 
+{
+ Serial.begin(9600);
+ pinMode(3,OUTPUT);
+ pinMode(x1,OUTPUT);
+ pinMode(x2,OUTPUT);
+}
+
+void loop() 
+{
+  if(Serial.available())
+  {
+    var=Serial.read();
+    if(var=='e')
+    {analogWrite(3,127);   
+     
+      
+    }  
+    if(var=='f')
+    {analogWrite(3,250);   
+     
+      
+    }  
+    if(var=='g')
+    {digitalWrite(x1,HIGH);
+     digitalWrite(x2,LOW);
+      
+    }
+    if(var=='h')
+    {digitalWrite(x2,HIGH);
+     digitalWrite(x1,LOW);
+    
+    } 
+     
+     if(var=='x')
+    {digitalWrite(x1,LOW);
+     digitalWrite(x2,LOW);
+     analogWrite(3,0);    
+     }
+    
+  }
+
+}
