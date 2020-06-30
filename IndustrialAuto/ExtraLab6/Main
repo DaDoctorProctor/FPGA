@@ -1,0 +1,238 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity Main is
+	port (
+		
+		clk: in  std_logic;
+		sw: in  std_logic_vector(15 downto 0);
+		JB: inout std_logic_vector(3 downto 0);
+		led: out STD_LOGIC_VECTOR(15 downto 0);
+		JA: out std_logic_vector(7 downto 0));
+		
+end Main;
+
+architecture Behavioral of Main is
+------LCD CONTROLLER------
+	COMPONENT LCD_Driver IS
+	  PORT(
+		 clk        : IN    STD_LOGIC;  
+		 reset_n    : IN    STD_LOGIC;  
+		 rw, rs, e  : OUT   STD_LOGIC;  
+		 lcd_data   : OUT   STD_LOGIC_VECTOR(7 DOWNTO 0); 
+		 line1_buffer : IN STD_LOGIC_VECTOR(127 downto 0); 
+		 line2_buffer : IN STD_LOGIC_VECTOR(127 downto 0)); 
+	END COMPONENT;
+-------RX CONTROLLER (WORKS WITH RS232, RS485, TTL)---------
+	COMPONENT RS485 IS
+	  PORT(
+    i_Clk       : in  std_logic;
+    i_RX_Serial : in  std_logic;
+    o_RX_DV     : out std_logic;
+    o_RX_Byte   : out std_logic_vector(7 downto 0)
+    );
+	END COMPONENT;
+	
+
+	-- These lines can be configured to be input from anything. 
+	-- 8 bits per character
+	signal top_line : std_logic_vector(127 downto 0) := x"20202020202020202020202020202020"; 
+	signal bottom_line : std_logic_vector(127 downto 0) := x"20202020202020202020202020202020"; 
+    signal RX_Byte: STD_LOGIC_VECTOR(7 downto 0);
+    
+    TYPE state_type is(S0,S1,S2);
+    SIGNAL STATE: state_type:= S0;
+    SIGNAL reset: STD_LOGIC;
+    SIGNAL input: STD_LOGIC;
+    SIGNAL output: STD_LOGIC_VECTOR(1 downto 0);
+    SIGNAL CNT: Integer range 0 to 15:= 0;
+    SIGNAL entry: STD_LOGIC_VECTOR(7 downto 0);
+    
+CONSTANT speed : integer :=50000000; 
+CONSTANT cnt_intMax: integer :=9999;
+SIGNAL cnt_units: integer range 0 to 1 := 0;
+SIGNAL speed0 : integer range 0 to speed := 0;
+SIGNAL cnt_int : integer range 0 to cnt_intMax :=0;
+SIGNAL led0: STD_LOGIC; 
+SIGNAL clkX: STD_LOGIC;
+SIGNAL clkStart: STD_LOGIC;
+SIGNAL cnt_unitsBit: STD_LOGIC;
+    
+begin
+
+LCD: LCD_Driver port map(
+	clk => clk,
+	reset_n => sw(0),
+	e => JB(0),
+	rs => JB(1),
+	rw => JB(2),
+	lcd_data => JA(7 downto 0),
+	line1_buffer => top_line,
+	line2_buffer => bottom_line 
+);
+
+RX: RS485 port map(
+	i_Clk => clk,     
+    i_RX_Serial => JB(3),
+    o_RX_DV => led(12),
+    o_RX_Byte => RX_Byte
+);
+   
+--led(7 downto 0) <= RX_Byte; 
+--top_line(127 downto 120) <= sw(8 downto 1);
+
+
+led(7 downto 0)   <= RX_Byte;
+led(15 downto 14) <= output;
+PROCESS (clk, reset)
+   BEGIN
+      IF reset = '1' THEN
+         state <= s0;
+      ELSIF (clk'EVENT AND clk = '1') THEN
+         CASE state IS
+            WHEN s0=>
+               led(9) <= '0';
+               Entry <= RX_Byte;
+               -----IF the letter S is received, start byte recieve sequence-------
+               IF Entry = "01010011" THEN
+                  Entry <= "11111111";
+                  state <= s1;
+               ELSE
+                  state <= s0;
+               END IF;
+               
+            WHEN s1=>
+            Entry <= RX_Byte;   
+               IF Entry /= "01010011" THEN
+                  IF Entry /= "01000101" THEN
+                    IF Entry /= "11111111" THEN
+                    -----Write on LCD sequence-------
+                    if speed0 = speed then
+                    led(9) <= '1';
+                    CASE CNT is
+                    when 0 =>
+                    top_line(127 downto 120) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 1 => 
+                    top_line(119 downto 112) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 2 => 
+                    top_line(111 downto 104) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 3 => 
+                    top_line(103 downto 96) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 4 => 
+                    top_line(95 downto 88) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 5 => 
+                    top_line(87 downto 80 ) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 6 => 
+                    top_line(79 downto 72) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 7 => 
+                    top_line(71 downto 64) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 8 => 
+                    top_line(63 downto 56) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 9 => 
+                    top_line(55 downto 48) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 10 => 
+                    top_line(47 downto 40) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 11 => 
+                    top_line(39 downto 32) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 12 => 
+                    top_line(31 downto 24) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 13 => 
+                    top_line(23 downto 16) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 14 => 
+                    top_line(15 downto 8) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                    when 15 => 
+                    top_line(7 downto 0) <= Entry;
+                    --led(8 downto 1) <= Entry;
+                    CNT <= 0;  
+                    state <= s2;
+                    
+                    when others => 
+                    top_line(7 downto 0) <= Entry;
+                    --led(8 downto 1) <= Entry;  
+                    state <= s2;
+                    
+                        end case;
+                    else
+                    speed0 <= speed0+1;
+                    END IF;
+                    END IF;
+                  END IF;
+               ELSE
+                  state <= s1;
+               END IF;
+            ----END COMMUNICATIONS------- --   
+            WHEN s2=>
+            Entry <= RX_Byte;
+            speed0 <=0;
+            led(9) <= '0';
+            ----- IF THE LETTER E IS RECIEVED END THE COMMUNICATIONS--------
+               IF ENTRY = "01000101" THEN
+                  CNT <= CNT+1;
+                  state <= s0;
+               ELSE
+                  state <= s2;
+               END IF;
+         END CASE;
+      END IF;
+   END PROCESS;
+   
+PROCESS (state)
+   BEGIN
+      CASE state IS
+         WHEN s0 =>
+            output <= "00";
+         WHEN s1 =>
+            output <= "01";
+         WHEN s2 =>
+            output <= "10";
+      END CASE;
+END PROCESS;
+
+
+
+end Behavioral;
